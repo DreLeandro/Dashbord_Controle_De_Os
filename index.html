@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard de Ordens de Serviço</title>
+<style>
+:root {
+  --blue:#00A5E4;
+  --blue-dark:#007DB2;
+  --green:#52AE32;
+  --ink:#232323;
+  --muted:#667085;
+  --bg:#F4F8FA;
+  --card:#FFFFFF;
+  --line:#E4EAEE;
+  --success:#2E8B57;
+  --danger:#D64545;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+.header{background:linear-gradient(135deg,#fff 0%,#f8fcfe 65%,#eef9f1 100%);border-bottom:1px solid var(--line);padding:22px 34px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--green));display:grid;place-items:center;color:white;font-weight:800;font-size:22px;box-shadow:0 8px 20px rgba(0,165,228,.18)}
+.header h1{font-size:21px;margin:0 0 4px}
+.header p{margin:0;color:var(--muted);font-size:13px}
+.badge{padding:9px 13px;border-radius:999px;background:#fff;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.container{padding:28px 34px 40px;max-width:1500px;margin:auto}
+.filters{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 8px 30px rgba(16,24,40,.04);display:grid;grid-template-columns:1fr 1.6fr 1.2fr auto;gap:14px;align-items:end}
+.field label{display:block;font-size:12px;font-weight:700;margin:0 0 7px;color:#475467}
+.field input,.field select{width:100%;height:42px;border:1px solid #D7DEE5;border-radius:10px;padding:0 12px;background:#fff;outline:none;font-size:14px}
+.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,165,228,.12)}
+.btn{height:42px;border:0;border-radius:10px;padding:0 18px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--blue-dark)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:18px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;right:-24px;top:-28px;width:90px;height:90px;border-radius:50%;background:rgba(0,165,228,.08)}
+.kpi.green:after{background:rgba(82,174,50,.1)}
+.kpi.red:after{background:rgba(214,69,69,.08)}
+.kpi .label{color:var(--muted);font-size:12px;font-weight:700}
+.kpi .value{font-size:30px;font-weight:800;margin-top:7px}
+.kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.grid{display:grid;grid-template-columns:1.25fr .75fr;gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 8px 30px rgba(16,24,40,.04)}
+.card h2{font-size:16px;margin:0 0 4px}
+.card .desc{font-size:12px;color:var(--muted);margin-bottom:16px}
+.progress{height:11px;background:#EEF2F4;border-radius:999px;overflow:hidden;margin:9px 0 16px}
+.progress span{display:block;height:100%;border-radius:999px}
+.bar-blue{background:var(--blue)} .bar-green{background:var(--green)} .bar-red{background:var(--danger)}
+.legend{display:flex;justify-content:space-between;font-size:13px;margin-top:7px}
+.table-wrap{overflow:auto;margin-top:18px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th{text-align:left;color:#667085;font-size:11px;text-transform:uppercase;letter-spacing:.04em;background:#F8FAFB;padding:12px;border-bottom:1px solid var(--line)}
+td{padding:13px 12px;border-bottom:1px solid #EEF1F3}
+tr:hover td{background:#FAFCFD}
+.status{display:inline-flex;padding:5px 9px;border-radius:999px;font-weight:700;font-size:11px}
+.ok{background:#EAF7EE;color:#267343} .no{background:#FDECEC;color:#B42318}
+.questions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+.question{border:1px solid var(--line);border-radius:14px;padding:15px;background:#FCFDFD;cursor:pointer;transition:.2s}
+.question:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,24,40,.06);border-color:#BFDDE8}
+.question strong{font-size:13px;display:block;margin-bottom:5px}
+.question span{font-size:12px;color:var(--muted)}
+.answer{margin-top:16px;border-left:4px solid var(--blue);padding:13px 15px;background:#F4FBFE;border-radius:8px;font-size:13px;display:none}
+.footer{text-align:center;color:#98A2B3;font-size:11px;padding:24px}
+@media(max-width:1000px){.filters{grid-template-columns:1fr 1fr}.kpis{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}.questions{grid-template-columns:1fr}}
+@media(max-width:600px){.header{padding:18px}.container{padding:18px}.filters,.kpis{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="brand">
+    <div class="logo">S</div>
+    <div>
+      <h1>Gestão de Ordens de Serviço</h1>
+      <p>Painel operacional • acompanhamento de serviços executados</p>
+    </div>
+  </div>
+  <div class="badge">Base carregada: 20 ordens</div>
+</header>
+
+<main class="container">
+  <section class="filters">
+    <div class="field">
+      <label for="os">Ordem de serviço</label>
+      <input id="os" placeholder="Ex.: OS-2026001">
+    </div>
+    <div class="field">
+      <label for="endereco">Endereço</label>
+      <input id="endereco" placeholder="Digite parte do endereço">
+    </div>
+    <div class="field">
+      <label for="servico">Serviço executado</label>
+      <select id="servico">
+        <option value="">Todos</option>
+        <option value="Executado">Executado</option>
+        <option value="Não Executado">Não Executado</option>
+      </select>
+    </div>
+    <button class="btn" onclick="applyFilters()">Filtrar</button>
+  </section>
+
+  <section class="kpis">
+    <div class="kpi"><div class="label">Ordens de serviço</div><div class="value" id="total">0</div><div class="sub">Total encontrado</div></div>
+    <div class="kpi green"><div class="label">Serviços executados</div><div class="value" id="executadas">0</div><div class="sub" id="pctExec">0% do total</div></div>
+    <div class="kpi red"><div class="label">Não executados</div><div class="value" id="naoExec">0</div><div class="sub" id="pctNao">0% do total</div></div>
+    <div class="kpi"><div class="label">Taxa de execução</div><div class="value" id="taxa">0%</div><div class="sub">Indicador operacional</div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Distribuição das ordens</h2>
+      <div class="desc">Comparativo entre serviços executados e não executados.</div>
+      <div style="height:260px"><canvas id="executionChart"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Ordens por endereço</h2>
+      <div class="desc">Quantidade de ordens encontradas em cada endereço.</div>
+      <div style="height:260px"><canvas id="addressChart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="grid" style="margin-top:18px">
+    <div class="card">
+      <h2>Visão geral da execução</h2>
+      <div class="desc">Distribuição das ordens conforme o serviço foi executado ou não.</div>
+      <div class="legend"><span>Executados</span><strong id="barExecText">0%</strong></div>
+      <div class="progress"><span id="barExec" class="bar-green" style="width:0%"></span></div>
+      <div class="legend"><span>Não executados</span><strong id="barNaoText">0%</strong></div>
+      <div class="progress"><span id="barNao" class="bar-red" style="width:0%"></span></div>
+    </div>
+
+    <div class="card">
+      <h2>Perguntas de controle</h2>
+      <div class="desc">Clique para consultar rapidamente a base filtrada.</div>
+      <div class="questions">
+        <div class="question" onclick="showAnswer('os')"><strong>Quais são as ordens de serviço?</strong><span>Lista das OS encontradas.</span></div>
+        <div class="question" onclick="showAnswer('exec')"><strong>Quais serviços foram executados?</strong><span>Quantidade e relação de OS.</span></div>
+        <div class="question" onclick="showAnswer('nao')"><strong>Quais serviços não foram executados?</strong><span>Identifique as pendências.</span></div>
+      </div>
+      <div id="answer" class="answer"></div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:18px">
+    <h2>Indicador de execução</h2>
+    <div class="desc">Visão percentual da base filtrada.</div>
+    <div style="height:270px"><canvas id="statusChart"></canvas></div>
+  </section>
+
+  <section class="card" style="margin-top:18px">
+    <h2>Detalhamento das ordens</h2>
+    <div class="desc">Tabela atualizada automaticamente conforme os filtros.</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ordem de Serviço</th><th>Endereço</th><th>Hidrômetro antigo</th><th>Hidrômetro novo</th><th>Serviço</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">Dashboard demonstrativo • interface inspirada em elementos institucionais da Sabesp.</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const DATA = [{"Ordem de Serviço": "OS-2026001", "Endereço": "Rua das Acácias, 145", "Hidrômetro Antigo": "HDA45872", "Hidrômetro Novo": "HDN78945", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026002", "Endereço": "Av. Brasil, 1020", "Hidrômetro Antigo": "HDA45873", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026003", "Endereço": "Rua São Jorge, 87", "Hidrômetro Antigo": "HDA45874", "Hidrômetro Novo": "HDN78947", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026004", "Endereço": "Rua das Palmeiras, 321", "Hidrômetro Antigo": "HDA45875", "Hidrômetro Novo": "HDN78948", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026005", "Endereço": "Av. Paulista, 1540", "Hidrômetro Antigo": "HDA45876", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026006", "Endereço": "Rua Marechal Deodoro, 68", "Hidrômetro Antigo": "HDA45877", "Hidrômetro Novo": "HDN78950", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026007", "Endereço": "Rua dos Lírios, 214", "Hidrômetro Antigo": "HDA45878", "Hidrômetro Novo": "HDN78951", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026008", "Endereço": "Av. Independência, 452", "Hidrômetro Antigo": "HDA45879", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026009", "Endereço": "Rua Bela Vista, 901", "Hidrômetro Antigo": "HDA45880", "Hidrômetro Novo": "HDN78953", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026010", "Endereço": "Rua Antônio Prado, 173", "Hidrômetro Antigo": "HDA45881", "Hidrômetro Novo": "HDN78954", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026011", "Endereço": "Av. Central, 258", "Hidrômetro Antigo": "HDA45882", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026012", "Endereço": "Rua das Oliveiras, 719", "Hidrômetro Antigo": "HDA45883", "Hidrômetro Novo": "HDN78956", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026013", "Endereço": "Rua Goiás, 440", "Hidrômetro Antigo": "HDA45884", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026014", "Endereço": "Av. Rio Branco, 135", "Hidrômetro Antigo": "HDA45885", "Hidrômetro Novo": "HDN78958", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026015", "Endereço": "Rua Minas Gerais, 582", "Hidrômetro Antigo": "HDA45886", "Hidrômetro Novo": "HDN78959", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026016", "Endereço": "Rua das Flores, 63", "Hidrômetro Antigo": "HDA45887", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026017", "Endereço": "Av. Santos Dumont, 1140", "Hidrômetro Antigo": "HDA45888", "Hidrômetro Novo": "HDN78961", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026018", "Endereço": "Rua do Comércio, 398", "Hidrômetro Antigo": "HDA45889", "Hidrômetro Novo": "HDN78962", "Serviço Executado": "Executado"}, {"Ordem de Serviço": "OS-2026019", "Endereço": "Rua Primavera, 177", "Hidrômetro Antigo": "HDA45890", "Hidrômetro Novo": "", "Serviço Executado": "Não Executado"}, {"Ordem de Serviço": "OS-2026020", "Endereço": "Av. das Nações, 620", "Hidrômetro Antigo": "HDA45891", "Hidrômetro Novo": "HDN78964", "Serviço Executado": "Executado"}];
+
+let current = DATA.slice();
+let executionChart, addressChart, statusChart;
+
+function buildCharts(){
+  const exec = current.filter(r=>r['Serviço Executado']==='Executado').length;
+  const nao = current.filter(r=>r['Serviço Executado']==='Não Executado').length;
+
+  const addressCounts = {};
+  current.forEach(r=>{
+    const address = String(r['Endereço'] || 'Não informado');
+    addressCounts[address] = (addressCounts[address] || 0) + 1;
+  });
+  const addresses = Object.entries(addressCounts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  [executionChart,addressChart,statusChart].forEach(c=>{ if(c) c.destroy(); });
+
+  const common = {
+    responsive:true,
+    maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:16,font:{size:11}}}}
+  };
+
+  executionChart = new Chart(document.getElementById('executionChart'),{
+    type:'bar',
+    data:{labels:['Executados','Não executados'],
+      datasets:[{label:'Ordens',data:[exec,nao],borderRadius:8,borderWidth:0}]},
+    options:{...common,scales:{y:{beginAtZero:true,ticks:{precision:0}},x:{grid:{display:false}}}}
+  });
+
+  addressChart = new Chart(document.getElementById('addressChart'),{
+    type:'bar',
+    data:{labels:addresses.map(x=>x[0]),
+      datasets:[{label:'Ordens',data:addresses.map(x=>x[1]),borderRadius:7,borderWidth:0}]},
+    options:{...common,indexAxis:'y',scales:{x:{beginAtZero:true,ticks:{precision:0}},y:{grid:{display:false}}}}
+  });
+
+  statusChart = new Chart(document.getElementById('statusChart'),{
+    type:'doughnut',
+    data:{labels:['Executados','Não executados'],
+      datasets:[{data:[exec,nao],borderWidth:3}]},
+    options:{...common,cutout:'66%'}
+  });
+}
+
+function applyFilters(){
+  const os = document.getElementById('os').value.toLowerCase().trim();
+  const endereco = document.getElementById('endereco').value.toLowerCase().trim();
+  const servico = document.getElementById('servico').value;
+  current = DATA.filter(r =>
+    (!os || String(r['Ordem de Serviço']).toLowerCase().includes(os)) &&
+    (!endereco || String(r['Endereço']).toLowerCase().includes(endereco)) &&
+    (!servico || r['Serviço Executado'] === servico)
+  );
+  render();
+}
+
+function render(){
+  const total=current.length;
+  const exec=current.filter(r=>r['Serviço Executado']==='Executado').length;
+  const nao=total-exec;
+  const pExec=total ? Math.round(exec/total*100) : 0;
+  const pNao=total ? 100-pExec : 0;
+
+  document.getElementById('total').textContent=total;
+  document.getElementById('executadas').textContent=exec;
+  document.getElementById('naoExec').textContent=nao;
+  document.getElementById('taxa').textContent=pExec+'%';
+  document.getElementById('pctExec').textContent=pExec+'% do total';
+  document.getElementById('pctNao').textContent=pNao+'% do total';
+  document.getElementById('barExec').style.width=pExec+'%';
+  document.getElementById('barNao').style.width=pNao+'%';
+  document.getElementById('barExecText').textContent=pExec+'%';
+  document.getElementById('barNaoText').textContent=pNao+'%';
+
+  buildCharts();
+
+  document.getElementById('tbody').innerHTML=current.map(r=>`
+    <tr>
+      <td><strong>${esc(r['Ordem de Serviço'])}</strong></td>
+      <td>${esc(r['Endereço'])}</td>
+      <td>${esc(r['Hidrômetro Antigo']) || '—'}</td>
+      <td>${esc(r['Hidrômetro Novo']) || '—'}</td>
+      <td><span class="status ${r['Serviço Executado']==='Executado'?'ok':'no'}">${esc(r['Serviço Executado'])}</span></td>
+    </tr>`).join('') || `<tr><td colspan="5" style="text-align:center;color:#667085;padding:28px">Nenhuma ordem encontrada.</td></tr>`;
+}
+
+function esc(v){ return String(v ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
+
+function showAnswer(type){
+  const el=document.getElementById('answer');
+  const os=current.map(r=>r['Ordem de Serviço']);
+  let text='';
+  if(type==='os') text = `<strong>Ordens encontradas (${
+    os.length
+  }):</strong> ${os.join(', ') || 'nenhuma'}`;
+  if(type==='exec'){
+    const a=current.filter(r=>r['Serviço Executado']==='Executado').map(r=>r['Ordem de Serviço']);
+    text=`<strong>Executados (${a.length}):</strong> ${a.join(', ') || 'nenhum'}`;
+  }
+  if(type==='nao'){
+    const a=current.filter(r=>r['Serviço Executado']==='Não Executado').map(r=>r['Ordem de Serviço']);
+    text=`<strong>Não executados (${a.length}):</strong> ${a.join(', ') || 'nenhum'}`;
+  }
+  el.innerHTML=text; el.style.display='block';
+}
+
+['os','endereco'].forEach(id=>document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')applyFilters()}));
+render();
+</script>
+</body>
+</html>
